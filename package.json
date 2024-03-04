@@ -1,0 +1,12 @@
+{
+  "scripts": {
+    "start": "nodemon ./src/index.js"
+  },
+  "dependencies": {
+    "@tensorflow/tfjs-node": "^4.17.0"
+  },
+  "devDependencies": {
+    "prettier": "3.2.5"
+  },
+  "type": "module"
+}
