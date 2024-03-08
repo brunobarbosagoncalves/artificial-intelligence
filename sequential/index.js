@@ -1,141 +1,3 @@
-// import tf from '@tensorflow/tfjs-node'
-// import fs from 'fs'
-// import path from 'path'
-
-// const __dirname = path.resolve()
-// const pathCsv = [__dirname, 'sequential', 'bbse3-cotacao.csv']
-// const configCsv = { encoding: 'utf8' }
-// let arquivo = fs.readFileSync(path.resolve(pathCsv), configCsv)
-
-// // Formato colunas do CSV
-// //DATA;ABERTURA;FECHAMENTO;MÍNIMO;MÁXIMO
-// arquivo = arquivo.toString().trim()
-
-// const linhas = arquivo.split('\n')
-// let X = []
-// let Y = []
-// let qtdLinhas = 0
-// for (let l = 1; l < linhas.length; l++) {
-//   let celulas1 = []
-//   // Deve ser recostada e inserida aqui a ultima data da lista do CSV
-//   // Separando por virgula
-//   if (qtdLinhas == linhas.length - 2)
-//     celulas1 = ['18.12.2023', 30.6, 31.35, 30.55, 31.58]
-//   // Casas decimais são duas nos dados obtidos no CSV
-//   else celulas1 = linhas[l + 1].split(';')
-
-//   const celulas2 = linhas[l].split(';')
-
-//   const AberturaX = Number(celulas1[1])
-//   const FechamentoX = Number(celulas1[2])
-//   const MinimaX = Number(celulas1[3])
-//   const MaximaX = Number(celulas1[4])
-//   X.push([FechamentoX, AberturaX, MaximaX, MinimaX])
-
-//   const AberturaY = Number(celulas2[1])
-//   const FechamentoY = Number(celulas2[2])
-//   const MinimaY = Number(celulas2[3])
-//   const MaximaY = Number(celulas2[4])
-//   Y.push([FechamentoY, AberturaY, MaximaY, MinimaY])
-
-//   qtdLinhas++
-// }
-
-// const model = tf.sequential()
-// const inputLayer = tf.layers.dense({ units: 4, inputShape: [4] })
-// model.add(inputLayer)
-// // Pós ponto colocar o dobro de ZEROS das casas decimais dos valores do CSV
-// // Pode aumentar para tentar um valor de maior precisão
-// const learningRate = 0.00001
-// const optimizer = tf.train.sgd(learningRate)
-// const compile = { loss: 'meanSquaredError', optimizer: optimizer }
-// model.compile(compile)
-// const x = tf.tensor(X, [qtdLinhas, 4])
-// const y = tf.tensor(Y)
-
-// // Dados para treino
-// // 01.03.2024;33.35;32.92;32.86;33.41   ==> Usado para ver a resposta se esta precisa
-// // 29.02.2024;33.54;33.34;33.31;33.68   ==> Usado para predição
-// const arrInput = [[33.54, 33.34, 33.31, 33.68]]
-// const input = tf.tensor(arrInput, [1, 4])
-
-// const result = [
-//   {
-//     epochs: -1,
-//     data: arrInput[0],
-//   },
-// ]
-
-// // epochs: pode aumentar para tentar alcancar maior precisao
-// // porem chega até um número que mesmo se aumentar nao é efetivo
-// await model.fit(x, y, { epochs: 600 }).then(() =>
-//   result.push({
-//     epochs: 600,
-//     data: model
-//       .predict(input)
-//       .dataSync()
-//       .map((item) => Number(item)),
-//   }),
-// )
-
-// await model.fit(x, y, { epochs: 300 }).then(() =>
-//   result.push({
-//     epochs: 300,
-//     data: model
-//       .predict(input)
-//       .dataSync()
-//       .map((item) => Number(item)),
-//   }),
-// )
-
-// await model.fit(x, y, { epochs: 150 }).then(() =>
-//   result.push({
-//     epochs: 150,
-//     data: model
-//       .predict(input)
-//       .dataSync()
-//       .map((item) => Number(item)),
-//   }),
-// )
-
-// await model.fit(x, y, { epochs: 70 }).then(() =>
-//   result.push({
-//     epochs: 70,
-//     data: model
-//       .predict(input)
-//       .dataSync()
-//       .map((item) => Number(item)),
-//   }),
-// )
-
-// await model.fit(x, y, { epochs: 35 }).then(() =>
-//   result.push({
-//     epochs: 35,
-//     data: model
-//       .predict(input)
-//       .dataSync()
-//       .map((item) => Number(item)),
-//   }),
-// )
-
-// await model.fit(x, y, { epochs: 15 }).then(() =>
-//   result.push({
-//     epochs: 15,
-//     data: model
-//       .predict(input)
-//       .dataSync()
-//       .map((item) => Number(item)),
-//   }),
-// )
-
-// let resume = result
-//   .map((item) => `epochs: ${item.epochs} ; \t ${item.data.join('\t\t')}`)
-//   .join('\n')
-
-// console.log(resume)
-
-//----------------------
-
 import tf from '@tensorflow/tfjs-node'
 import fs from 'fs'
 import path from 'path'
@@ -146,114 +8,157 @@ class Sequential {
    *  @param {Object} params
    *  @param {String} params.pathCsv /fullpath/to/myfile.csv
    *  @param {Object} params.configCsv { encoding: 'utf8' }
-   *  @param {Array[Object]} params.mapCsv [{ name:'ColumnName', position: ColumnPosition, ignore: trueOrFalse  }]
    *  @param {Number} params.epochs 100
    *  @param {Float[Float]} params.learningRate 0.00001
    */
 
   constructor(params) {
     this.pathCsv = params?.pathCsv
-    this.configCsv = params?.configCsv
-    this.mapPositionsCsv = params?.mapCsv
-      .filter((i) => !i.ignore)
-      .map((i) => i.position)
-    this.mapColumnsCsv = params?.mapCsv.map((i) => i.column)
-    this.epochs = params?.epochs
-    this.learningRate = params?.learningRate
+    this.configCsv = params?.configCsv || { encoding: 'utf8' }
+    this.epochs = params?.epochs || 500
+    this.learningRate = params?.learningRate || 0.00001
+    this.columnsWithNumbers = []
+    this.headers = []
+    this.lines = []
   }
 
-  filterPosition(data) {
-    return data.reduce(
-      (acc, cur, ind) =>
-        this.mapPositionsCsv.includes(ind) ? [...acc, Number(cur)] : [...acc],
-      [],
+  LoadFile() {
+    const file = fs.readFileSync(this.pathCsv, this.configCsv).toString().trim()
+
+    this.lines = file.split('\n')
+  }
+
+  HeaderFromLines() {
+    this.headers = this.lines.shift().split(';')
+  }
+
+  ColumnsWithNumbers() {
+    const positions = this.lines[0]
+      .split(';')
+      .reduce((a, c, i) => (!!Number(c) ? [...a, i] : [...a]), [])
+
+    this.columnsWithNumbers = positions
+  }
+
+  CleanDataAndHeaders() {
+    const positions = this.columnsWithNumbers
+    this.headers = this.headers.filter((h, i) => positions.includes(i))
+    this.lines = this.lines.map((line, i) =>
+      line
+        .split(';')
+        .filter((_, i) => positions.includes(i))
+        .join(';'),
     )
   }
 
-  async start() {
+  ConvertLinesToNumber() {
+    this.lines = this.lines.map((line) => this.ConvertLineToNumberList(line))
+  }
+
+  ConvertLineToNumberList(line) {
+    return line.split(';').map((n) => Number(n))
+  }
+
+  async Start() {
     // Load file
-    let arquivo = fs.readFileSync(this.pathCsv, this.configCsv)
+    this.LoadFile()
 
-    // Formato colunas do CSV
-    //DATA;ABERTURA;FECHAMENTO;MÍNIMO;MÁXIMO
-    arquivo = arquivo.toString().trim()
+    // Get header from line first line
+    this.HeaderFromLines()
 
-    const linhas = arquivo.split('\n')
+    // Get index of columns with numbers
+    this.ColumnsWithNumbers()
 
-    // ultima linha formatada em array
-    const linhaFinal = linhas.pop().split(';')
-    const linhaAlvoPredicao = this.filterPosition(linhas.shift().split(';'))
-    const linhaPreAlvoPredicao = this.filterPosition(linhas.shift().split(';'))
+    // Remove coluns no number
+    this.CleanDataAndHeaders()
+
+    // Remove coluns no number
+    this.ConvertLinesToNumber()
+
+    // Last line format array
+    const lineLast = this.lines.pop()
+
+    // target to predict
+    const lineTarget = this.lines.shift()
+
+    // line before target
+    const lineAfterTarget = this.lines.shift()
+
+    const lengthNumbersData = lineAfterTarget.length
 
     let X = []
     let Y = []
-    let qtdLinhas = 0
-    for (let l = 1; l < linhas.length; l++) {
-      let celulas1 = []
-      let celulas2 = []
+    let countLines = 0
+    for (let l = 1; l < this.lines.length; l++) {
+      let line1 = []
+      let line2 = []
 
       // Deve ser recortada e inserida aqui a ultima data da lista do CSV
       // Separando por virgula
-      if (qtdLinhas == linhas.length - 2) celulas1 = linhaFinal
+      if (countLines == this.lines.length - 2) line1 = lineLast
       // Casas decimais são duas nos dados obtidos no CSV
-      else celulas1 = linhas[l + 1].split(';')
+      else line1 = this.lines[l + 1]
 
-      celulas2 = linhas[l].split(';')
+      line2 = this.lines[l]
 
-      X.push(this.filterPosition(celulas1))
-      Y.push(this.filterPosition(celulas2))
+      X.push(line1)
+      Y.push(line2)
 
-      qtdLinhas++
+      countLines++
     }
 
     const model = tf.sequential()
-    const inputLayer = tf.layers.dense({ units: 4, inputShape: [4] })
+    const inputLayer = tf.layers.dense({
+      units: lengthNumbersData,
+      inputShape: [lengthNumbersData],
+    })
     model.add(inputLayer)
     // Pós ponto colocar o dobro de ZEROS das casas decimais dos valores do CSV
     // Pode aumentar para tentar um valor de maior precisão
     const optimizer = tf.train.sgd(this.learningRate)
-    const compile = { loss: 'meanSquaredError', optimizer: optimizer }
+    const compile = { loss: 'meanSquaredError', optimizer }
     model.compile(compile)
-    const x = tf.tensor(X, [qtdLinhas, 4])
+    const x = tf.tensor(X, [countLines, lengthNumbersData])
     const y = tf.tensor(Y)
 
     // Dados para treino
     // 01.03.2024;33.35;32.92;32.86;33.41   ==> Usado para ver a resposta se esta precisa
     // 29.02.2024;33.54;33.34;33.31;33.68   ==> Usado para predição
-    const arrInput = [linhaPreAlvoPredicao]
-    const input = tf.tensor(arrInput, [1, 4])
+    const arrInput = [lineTarget]
+    const input = tf.tensor(arrInput, [1, lengthNumbersData])
 
     // epochs: pode aumentar para tentar alcancar maior precisao
     // porem chega até um número que mesmo se aumentar nao é efetivo
     await model.fit(x, y, { epochs: this.epochs })
 
-    const linhaPredicao = model.predict(input).dataSync()
+    const linePredictRaw = model
+      .predict(input)
+      .dataSync()
+      .reduce((a, c) => [...a, parseFloat(c).toFixed(2)], [])
 
-    console.log('TARGET::', linhaPreAlvoPredicao)
-    console.log(
-      'FINDED::',
-      linhaPredicao.reduce(
-        (acc, cur) => [...acc, Number(Number(cur).toFixed(2))],
-        [],
-      ),
-    )
+    const linePredict = this.ConvertLineToNumberList(linePredictRaw.join(';'))
+
+    return {
+      headers: this.headers,
+      lineTarget,
+      linePredict,
+      lineAfterTarget,
+    }
   }
 }
 
 const __dirname = path.resolve()
 
-const seq = new Sequential({
-  pathCsv: path.resolve(__dirname, 'sequential', 'bbse3-cotacao.csv'),
-  configCsv: { encoding: 'utf8' },
-  epochs: 500,
-  learningRate: 0.00001,
-  mapCsv: [
-    { name: 'DATA', position: 0, ignore: true },
-    { name: 'ABERTURA', position: 1 },
-    { name: 'FECHAMENTO', position: 2 },
-    { name: 'MÍNIMO', position: 3 },
-    { name: 'MÁXIMO', position: 4 },
-  ],
-})
+const pathCsv = path.resolve(__dirname, 'sequential', 'bbse3-cotacao.csv')
 
-seq.start()
+const results = await Promise.all([
+  new Sequential({ pathCsv, epochs: 250 }).Start(),
+  new Sequential({ pathCsv, epochs: 500 }).Start(),
+  // new Sequential({ pathCsv, epochs: 1000 }).Start(),
+  // new Sequential({ pathCsv, epochs: 2000 }).Start(),
+  // new Sequential({ pathCsv, epochs: 4000 }).Start(),
+  // new Sequential({ pathCsv, epochs: 8000 }).Start(),
+  // new Sequential({ pathCsv, epochs: 16000 }).Start(),
+])
+
+console.log(JSON.stringify(results, null, 2))
