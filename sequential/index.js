@@ -255,14 +255,14 @@ const pathCsv = path.resolve(__dirname, 'sequential', 'cotacao.csv')
 const results = await Promise.all([
   new Sequential({ pathCsv, epochs: 50 }).Start(),
   new Sequential({ pathCsv, epochs: 100 }).Start(),
-  new Sequential({ pathCsv, epochs: 250 }).Start(),
-  new Sequential({ pathCsv, epochs: 500 }).Start(),
-  new Sequential({ pathCsv, epochs: 1000 }).Start(),
-  new Sequential({ pathCsv, epochs: 2000 }).Start(),
-  new Sequential({ pathCsv, epochs: 4000 }).Start(),
-  new Sequential({ pathCsv, epochs: 8000 }).Start(),
-  new Sequential({ pathCsv, epochs: 16000 }).Start(),
-  new Sequential({ pathCsv, epochs: 32000 }).Start(),
+  // new Sequential({ pathCsv, epochs: 250 }).Start(),
+  // new Sequential({ pathCsv, epochs: 500 }).Start(),
+  // new Sequential({ pathCsv, epochs: 1000 }).Start(),
+  // new Sequential({ pathCsv, epochs: 2000 }).Start(),
+  // new Sequential({ pathCsv, epochs: 4000 }).Start(),
+  // new Sequential({ pathCsv, epochs: 8000 }).Start(),
+  // new Sequential({ pathCsv, epochs: 16000 }).Start(),
+  // new Sequential({ pathCsv, epochs: 32000 }).Start(),
 ])
   // Format all line in one object
   .then((param) => FormatResult(param))
