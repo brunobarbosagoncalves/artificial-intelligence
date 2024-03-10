@@ -149,12 +149,16 @@ class Sequential {
     // Pós ponto colocar o dobro de ZEROS das casas decimais dos valores do CSV
     // Pode aumentar para tentar um valor de maior precisão
     const optimizer = tf.train.sgd(this.learningRate)
+    // Optimizer : 'sgd' poderia ser esse valor string sem o calculo atual, porem dessa forma fica maior a acuracidade
+
     const compile = {
       loss: 'meanSquaredError',
-      optimizer,
+      optimizer, // OR 'sgd'
       metrics: ['accuracy'],
     }
     model.compile(compile)
+
+    // tf.tensor( ArrayOfArraysRowsWithData , [ ArrayOfArraysRowsWithData.length , ArrayRowWithData.length  ]  )
     const x = tf.tensor(X, [countLines, lengthNumbersData])
     const y = tf.tensor(Y)
 
@@ -164,14 +168,15 @@ class Sequential {
     const arrInput = [lineTarget]
     const input = tf.tensor(arrInput, [1, lengthNumbersData])
 
+    // Epochs is equal BackPropagation
     // epochs: pode aumentar para tentar alcancar maior precisao
     // porem chega até um número que mesmo se aumentar nao é efetivo
     await model.fit(x, y, { epochs: this.epochs })
 
     const linePredictRaw = model
       .predict(input)
-      .dataSync()
-      .reduce((a, c) => [...a, parseFloat(c).toFixed(2)], [])
+      .dataSync() // convert data to array predict result
+      .reduce((a, c) => [...a, parseFloat(c).toFixed(2)], []) // convert item to ######.## tipo javascript
 
     const linePredict = this.ConvertLineToNumberList(linePredictRaw.join(';'))
 
@@ -237,7 +242,12 @@ const FormatResult = (resultList) =>
 
 const __dirname = path.resolve()
 
-const pathCsv = path.resolve(__dirname, 'sequential', 'cotacao.csv')
+const pathCsv = path.resolve(
+  __dirname,
+  'simpleLinearRegression',
+  'mode1',
+  'data.csv',
+)
 
 /**
  * O processo é executado usando dois parametros base

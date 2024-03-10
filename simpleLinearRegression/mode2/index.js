@@ -81,6 +81,6 @@ executar({
 })
 
 executar({
-  seed: [1, 2, 3, 4, 5, 6, 7, 8, 9],
-  pattern: [3, 5, 7, 9], // pattern[i] = seed[i] + seed[i+1]
+  seed: [1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 7.7, 8.8, 9.9],
+  pattern: [0.9, 1.8, 2.7, 3.6], // pattern[i] = seed[i] + seed[i+1]
 })
