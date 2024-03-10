@@ -1,0 +1,1 @@
+Curso : Sessão 14 - Regressão Linar Simples
