@@ -75,15 +75,16 @@ class Sequential {
     const linesToCalculeLearningRate = this.lines.slice(0, 3)
     const greaterDecimal = linesToCalculeLearningRate.reduce((a, c, i) => {
       c.forEach((number) => {
-        let totalDecimal = number.toString().split('.')[1].length || 1
-        if (totalDecimal > a) a = totalDecimal
+        // Usa as casas a esquerda do ponto
+        let totalDecimal = number.toString().split('.')[0].length || 1
+        if (totalDecimal > a) a = Number(totalDecimal)
       })
       return a
     }, 1)
 
-    this.learningRate = Number(
-      '0.'.padEnd(greaterDecimal * 2 + 2, '0').concat('1'),
-    )
+    const learningRate = '0.'.padEnd(greaterDecimal * 2 + 2, '0').concat('1')
+
+    this.learningRate = Number(learningRate)
   }
 
   async Start() {
@@ -147,6 +148,7 @@ class Sequential {
     })
     model.add(inputLayer)
     // Pós ponto colocar o dobro de ZEROS das casas decimais dos valores do CSV
+    // Essa linha é referente a taxa de aprendizagem
     // Pode aumentar para tentar um valor de maior precisão
     const optimizer = tf.train.sgd(this.learningRate)
     // Optimizer : 'sgd' poderia ser esse valor string sem o calculo atual, porem dessa forma fica maior a acuracidade
@@ -265,14 +267,14 @@ const pathCsv = path.resolve(
 const results = await Promise.all([
   new Sequential({ pathCsv, epochs: 50 }).Start(),
   new Sequential({ pathCsv, epochs: 100 }).Start(),
-  // new Sequential({ pathCsv, epochs: 250 }).Start(),
-  // new Sequential({ pathCsv, epochs: 500 }).Start(),
-  // new Sequential({ pathCsv, epochs: 1000 }).Start(),
-  // new Sequential({ pathCsv, epochs: 2000 }).Start(),
-  // new Sequential({ pathCsv, epochs: 4000 }).Start(),
-  // new Sequential({ pathCsv, epochs: 8000 }).Start(),
-  // new Sequential({ pathCsv, epochs: 16000 }).Start(),
-  // new Sequential({ pathCsv, epochs: 32000 }).Start(),
+  new Sequential({ pathCsv, epochs: 250 }).Start(),
+  new Sequential({ pathCsv, epochs: 500 }).Start(),
+  new Sequential({ pathCsv, epochs: 1000 }).Start(),
+  new Sequential({ pathCsv, epochs: 2000 }).Start(),
+  new Sequential({ pathCsv, epochs: 4000 }).Start(),
+  new Sequential({ pathCsv, epochs: 8000 }).Start(),
+  new Sequential({ pathCsv, epochs: 16000 }).Start(),
+  new Sequential({ pathCsv, epochs: 32000 }).Start(),
 ])
   // Format all line in one object
   .then((param) => FormatResult(param))

@@ -10,7 +10,7 @@
       "runtimeVersion": "20.10.0",
       "name": "Iniciar o Programa",
       "skipFiles": ["<node_internals>/**"],
-      "program": "${workspaceFolder}/multipleLinearRegression/mode1/index.js"
+      "program": "${workspaceFolder}/simpleLinearRegression/mode1/index.js"
     }
   ]
 }
